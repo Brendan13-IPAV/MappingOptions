@@ -433,51 +433,49 @@
       const [viewBox, setViewBox] = useState(initialViewBox);
       
       // Apply filters and search
-  const getFilteredData = () => {
-  try {
-    if (!data) return null;
-    
-    // Deep clone the data
-    const clonedData = JSON.parse(JSON.stringify(data));
-    
-    // Add matched property to each node instead of filtering them out
-    clonedData.children = clonedData.children.map(category => {
-      const children = category.children.map(node => {
-        // Check if node matches all filter criteria
-        const matchesSearch = searchTerm === '' || 
-          node.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          node.description.toLowerCase().includes(searchTerm.toLowerCase());
-        
-        const matchesIpType = filters.ipType === 'All' || node.ipType === filters.ipType;
-        const matchesCost = filters.cost === 'All' || node.cost === filters.cost;
-        const matchesTimeframe = filters.timeframe === 'All' || 
-          (filters.timeframe === 'Quick' && (node.timeframe === 'Days' || node.timeframe === 'Weeks')) ||
-          (filters.timeframe === 'Medium' && node.timeframe === 'Months') ||
-          (filters.timeframe === 'Long' && (node.timeframe === 'Years' || node.timeframe === 'Ongoing'));
-        
-        // Add matched property instead of filtering
-        return {
-          ...node,
-          matched: matchesSearch && matchesIpType && matchesCost && matchesTimeframe
-        };
-      });
-      
-      const matchesCategory = filters.category === 'All' || category.id === filters.category.toLowerCase();
-      const hasMatchedChildren = children.some(child => child.matched);
-      
-      return {
-        ...category,
-        children, // Keep all children
-        matched: matchesCategory && hasMatchedChildren
+      const getFilteredData = () => {
+        try {
+          if (!data) return null;
+          
+          // Deep clone the data
+          const clonedData = JSON.parse(JSON.stringify(data));
+          
+          // Apply filters to each category
+          clonedData.children = clonedData.children.map(category => {
+            // Filter children based on criteria
+            const filteredChildren = category.children.filter(node => {
+              // Apply search filter
+              const matchesSearch = searchTerm === '' || 
+                node.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                node.description.toLowerCase().includes(searchTerm.toLowerCase());
+              
+              // Apply category filters
+              const matchesIpType = filters.ipType === 'All' || node.ipType === filters.ipType;
+              const matchesCost = filters.cost === 'All' || node.cost === filters.cost;
+              const matchesTimeframe = filters.timeframe === 'All' || 
+                (filters.timeframe === 'Quick' && (node.timeframe === 'Days' || node.timeframe === 'Weeks')) ||
+                (filters.timeframe === 'Medium' && node.timeframe === 'Months') ||
+                (filters.timeframe === 'Long' && (node.timeframe === 'Years' || node.timeframe === 'Ongoing'));
+              
+              return matchesSearch && matchesIpType && matchesCost && matchesTimeframe;
+            });
+            
+            return {
+              ...category,
+              children: filteredChildren,
+              filtered: filteredChildren.length > 0 // Flag to indicate if this category has any matches
+            };
+          }).filter(category => 
+            filters.category === 'All' || category.id === filters.category.toLowerCase()
+          ).filter(category => category.filtered);
+          
+          return clonedData;
+        } catch (error) {
+          console.error("Error in getFilteredData:", error);
+          // Return original data in case of error
+          return data;
+        }
       };
-    });
-    
-    return clonedData;
-  } catch (error) {
-    console.error("Error in getFilteredData:", error);
-    return data;
-  }
-};
 
       const filteredData = getFilteredData();
 
@@ -847,23 +845,29 @@
                       style: { cursor: 'pointer' }
                     },
                       // Node circle
-React.createElement('circle', {
-  r: circleRadius,
-  fill: fillColor,
-  strokeWidth: selectedNode && selectedNode.id === node.id ? 4 : 0,
-  stroke: selectedNode && selectedNode.id === node.id ? "#fde047" : "none",
-  opacity: node.matched === false ? 0.3 : 1 // Add this line to dim unmatched nodes
-}),
+                      React.createElement('circle', {
+                        r: circleRadius,
+                        fill: fillColor,
+                        strokeWidth: selectedNode && selectedNode.id === node.id ? 4 : 0,
+                        stroke: selectedNode && selectedNode.id === node.id ? "#fde047" : "none"
+                      }),
                       
                       // Node text
-React.createElement('text', {
-  textAnchor: 'middle',
-  dy: '.3em',
-  fill: textColor,
-  fontSize: fontSize,
-  fontWeight: 'bold',
-  opacity: node.matched === false ? 0.3 : 1 // Add this line to dim unmatched text
-},
+                      React.createElement('text', {
+                        textAnchor: 'middle',
+                        dy: '.3em',
+                        fill: textColor,
+                        fontSize: fontSize,
+                        fontWeight: 'bold'
+                      },
+                        textLines.map((line, i, arr) => (
+                          React.createElement('tspan', {
+                            key: i,
+                            x: '0',
+                            dy: i === 0 ? -((arr.length - 1) * 15) / 2 : 15
+                          }, line)
+                        ))
+                      )
                     );
                   } catch (error) {
                     console.error("Error rendering node:", error);
