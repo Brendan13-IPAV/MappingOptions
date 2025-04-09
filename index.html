@@ -1,0 +1,833 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IP Rights Enforcement Mind Map</title>
+  
+  <!-- Dependencies -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/lucide/0.263.1/umd/lucide.min.js"></script>
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+    
+    .mindmap-container {
+      width: 100%;
+      height: 100vh;
+      overflow: hidden;
+    }
+    
+    svg text {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+    
+    .links line {
+      stroke-linecap: round;
+    }
+  </style>
+</head>
+<body>
+  <div id="root" class="mindmap-container"></div>
+
+  <script>
+    // Data for the mind map
+    const mindMapData = {
+      id: "root",
+      name: "Enforcement Options for IP Rights",
+      children: [
+        {
+          id: "administrative",
+          name: "Administrative Remedies",
+          description: "Options that involve IP Australia processes",
+          children: [
+            {
+              id: "patent-opposition",
+              name: "Patent Opposition",
+              tooltip: "Challenge a new or amended patent",
+              description: "Initiate a challenge to the validity of a new patent with IP Australia.",
+              ipType: "Patent",
+              cost: "Medium",
+              timeframe: "Months"
+            },
+            {
+              id: "patent-reexamination",
+              name: "Patent Re-examination",
+              tooltip: "Challenge a granted patent",
+              description: "Request a re-examination with IP Australia, to revoke or amend a granted patent.",
+              ipType: "Patent",
+              cost: "Medium",
+              timeframe: "Months"
+            },
+            {
+              id: "trademark-opposition",
+              name: "Trademark Opposition",
+              tooltip: "Challenge the registration of a trade mark",
+              description: "Initiate a trade mark opposition process against a new trademark with IP Australia.",
+              ipType: "Trademark",
+              cost: "Medium",
+              timeframe: "Months"
+            },
+            {
+              id: "trademark-revocation",
+              name: "Trademark Registration Revocation",
+              tooltip: "Remove a trade mark from the register",
+              description: "Let IP Australia know a recently registered trade mark should not have been registered",
+              ipType: "Trademark",
+              cost: "Medium",
+              timeframe: "Months"
+            },
+            {
+              id: "trademark-nonuse",
+              name: "Trademark Non-use Action",
+              tooltip: "Remove a trade mark from the register",
+              description: "Request IP Australia removes a trade mark from register for non-use",
+              ipType: "Trademark",
+              cost: "Medium",
+              timeframe: "Months"
+            },
+            {
+              id: "apply-ip",
+              name: "Apply for an IP Right",
+              tooltip: "Register your IP right",
+              description: "Strengthen your position as the legal owner of an IP right with IP Australia",
+              ipType: "General",
+              cost: "Medium",
+              timeframe: "Months"
+            }
+          ]
+        },
+        {
+          id: "legal",
+          name: "Legal Actions",
+          description: "Options that involve courts and formal legal processes",
+          children: [
+            {
+              id: "court-patent",
+              name: "Court - Patent",
+              tooltip: "Seek binding, authoritative decisions",
+              description: "Escalate a wide range of patent matters to court.",
+              ipType: "Patent",
+              cost: "High",
+              timeframe: "Years"
+            },
+            {
+              id: "court-trademark",
+              name: "Court - Trademark",
+              tooltip: "Seek binding, authoritative decisions",
+              description: "Escalate a wide range of trade mark matters to court.",
+              ipType: "Trademark",
+              cost: "High",
+              timeframe: "Years"
+            },
+            {
+              id: "injunction",
+              name: "Interim Court Injunction Order",
+              tooltip: "Stop infringing activity immediately",
+              description: "Lodge an interim injunction order through court",
+              ipType: "General",
+              cost: "High",
+              timeframe: "Weeks"
+            },
+            {
+              id: "notice-objection",
+              name: "Notice of Objection",
+              tooltip: "Stop infringing goods entering the country",
+              description: "Lodge a notice of objection with the Australian Border Force.",
+              ipType: "General",
+              cost: "Medium",
+              timeframe: "Months"
+            },
+            {
+              id: "domain-audrp",
+              name: "Domain Name Dispute (auDRP)",
+              tooltip: "Challenge the use of .au domain name",
+              description: "Dispute an .au domain name that may infringe an IP right",
+              ipType: "Trademark",
+              cost: "Medium",
+              timeframe: "Months"
+            }
+          ]
+        },
+        {
+          id: "adr",
+          name: "Alternative Dispute Resolution",
+          description: "Options that involve third party facilitators without court",
+          children: [
+            {
+              id: "adr-general",
+              name: "Alternative Dispute Resolution (ADR)",
+              tooltip: "Resolve conflicts with the help of experienced facilitators",
+              description: "Understand more about the options in the ADR space.",
+              ipType: "General",
+              cost: "Medium",
+              timeframe: "Months"
+            },
+            {
+              id: "mediation",
+              name: "Mediation",
+              tooltip: "Resolve IP issues with the help of a third party",
+              description: "Invite the other party to enter into mediation to agree to mutually acceptable agreement.",
+              ipType: "General",
+              cost: "Medium",
+              timeframe: "Months"
+            },
+            {
+              id: "arbitration",
+              name: "Arbitration",
+              tooltip: "Resolve IP issues with the help of a third party",
+              description: "Agree to be bound by the decision of a highly qualified third party assessment.",
+              ipType: "General",
+              cost: "Medium",
+              timeframe: "Months"
+            },
+            {
+              id: "asbfeo",
+              name: "ASBFEO",
+              tooltip: "Access help tailored to resolve business disputes",
+              description: "Australia Small Business & Family Enterprise Ombudsman (ASBFEO).",
+              ipType: "General",
+              cost: "Low",
+              timeframe: "Months"
+            },
+            {
+              id: "negotiation",
+              name: "Negotiation",
+              tooltip: "Agree to a commercial arrangement",
+              description: "Work with an IP professional to come to an agreement with another party.",
+              ipType: "General",
+              cost: "Medium",
+              timeframe: "Months"
+            }
+          ]
+        },
+        {
+          id: "self-help",
+          name: "Self-help Options",
+          description: "Options you can implement directly",
+          children: [
+            {
+              id: "letter-demand",
+              name: "Letter of Demand",
+              tooltip: "Demand the other party stops infringing",
+              description: "Send a letter to the infringing party notifying them of potential infringement.",
+              ipType: "General",
+              cost: "Low",
+              timeframe: "Weeks"
+            },
+            {
+              id: "informal-contact",
+              name: "Informal Contact",
+              tooltip: "Provide an opportunity to stop infringement",
+              description: "Alert the alleged infringer of your registered rights to allow them to stop infringing.",
+              ipType: "General",
+              cost: "Low",
+              timeframe: "Days"
+            },
+            {
+              id: "takedown",
+              name: "Takedown Request",
+              tooltip: "Stop infringement facilitated online",
+              description: "Request infringing material is removed from online marketplaces and platforms.",
+              ipType: "General",
+              cost: "Low",
+              timeframe: "Weeks"
+            },
+            {
+              id: "monitor",
+              name: "Monitor the Situation",
+              tooltip: "Take no immediate action",
+              description: "Strategically enforce your IP only when worthwhile.",
+              ipType: "General",
+              cost: "Low",
+              timeframe: "Ongoing"
+            },
+            {
+              id: "rebrand",
+              name: "Rebrand Your Business",
+              tooltip: "Avoid potential IP conflicts",
+              description: "Strategically rebrand your business to avoid disputes.",
+              ipType: "General",
+              cost: "Medium",
+              timeframe: "Months"
+            }
+          ]
+        },
+        {
+          id: "preventative",
+          name: "Preventative Measures",
+          description: "Options to protect against future issues",
+          children: [
+            {
+              id: "ip-attorney",
+              name: "IP Attorney or Lawyer",
+              tooltip: "Obtain legal advice on enforcement options",
+              description: "Seek a qualified & experienced professional to provide specific, tailored advice.",
+              ipType: "General",
+              cost: "High",
+              timeframe: "Weeks"
+            },
+            {
+              id: "ip-insurance",
+              name: "IP Insurance",
+              tooltip: "Coverage against potential future infringement",
+              description: "Protect yourself from certain costs involved in IP disputes",
+              ipType: "General",
+              cost: "Medium",
+              timeframe: "Ongoing"
+            }
+          ]
+        },
+        {
+          id: "international",
+          name: "International Options",
+          description: "Options for international enforcement",
+          children: [
+            {
+              id: "wipo",
+              name: "World IP Organisation (WIPO)",
+              tooltip: "Resolve international disputes",
+              description: "Seek dispute resolution through the WIPO Arbitration and Mediation Center",
+              ipType: "General",
+              cost: "Medium",
+              timeframe: "Months"
+            },
+            {
+              id: "international-options",
+              name: "International Options",
+              tooltip: "Enforce your IP overseas",
+              description: "Understand options relating to enforcing IP overseas",
+              ipType: "General",
+              cost: "High",
+              timeframe: "Varies"
+            },
+            {
+              id: "domain-udrp",
+              name: "Domain Name Dispute (UDRP)",
+              tooltip: "Challenge the use of international domain name",
+              description: "Dispute an international domain name that may infringe an IP right",
+              ipType: "Trademark",
+              cost: "Medium",
+              timeframe: "Months"
+            },
+            {
+              id: "report-crime",
+              name: "Report IP Crime or Safety Concerns",
+              tooltip: "Prevent risks to public interest",
+              description: "Inform Government about risks to public health, crime, counterfeiting, frauds & scams.",
+              ipType: "General",
+              cost: "Low",
+              timeframe: "Varies"
+            }
+          ]
+        }
+      ]
+    };
+  
+    // Main application component
+    const MindMap = () => {
+      const { useState, useEffect, useRef } = React;
+      const { Search, ZoomIn, ZoomOut, Home, Filter } = lucide;
+      
+      const [data, setData] = useState(mindMapData);
+      const [searchTerm, setSearchTerm] = useState('');
+      const [selectedNode, setSelectedNode] = useState(null);
+      const [zoomLevel, setZoomLevel] = useState(1);
+      const [filters, setFilters] = useState({
+        category: 'All',
+        ipType: 'All',
+        cost: 'All',
+        timeframe: 'All'
+      });
+      const [showFilters, setShowFilters] = useState(false);
+      const svgRef = useRef(null);
+      const initialViewBox = "-1000 -500 2000 1000";
+      const [viewBox, setViewBox] = useState(initialViewBox);
+      
+      // Apply filters and search
+      const getFilteredData = () => {
+        if (!data) return null;
+        
+        // Deep clone the data
+        const clonedData = JSON.parse(JSON.stringify(data));
+        
+        // Apply filters to each category
+        clonedData.children = clonedData.children.map(category => {
+          // Filter children based on criteria
+          const filteredChildren = category.children.filter(node => {
+            // Apply search filter
+            const matchesSearch = searchTerm === '' || 
+              node.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+              node.description.toLowerCase().includes(searchTerm.toLowerCase());
+            
+            // Apply category filters
+            const matchesIpType = filters.ipType === 'All' || node.ipType === filters.ipType;
+            const matchesCost = filters.cost === 'All' || node.cost === filters.cost;
+            const matchesTimeframe = filters.timeframe === 'All' || 
+              (filters.timeframe === 'Quick' && (node.timeframe === 'Days' || node.timeframe === 'Weeks')) ||
+              (filters.timeframe === 'Medium' && node.timeframe === 'Months') ||
+              (filters.timeframe === 'Long' && (node.timeframe === 'Years' || node.timeframe === 'Ongoing'));
+            
+            return matchesSearch && matchesIpType && matchesCost && matchesTimeframe;
+          });
+          
+          return {
+            ...category,
+            children: filteredChildren,
+            filtered: filteredChildren.length > 0 // Flag to indicate if this category has any matches
+          };
+        }).filter(category => 
+          filters.category === 'All' || category.id === filters.category.toLowerCase()
+        ).filter(category => category.filtered);
+        
+        return clonedData;
+      };
+
+      const filteredData = getFilteredData();
+
+      // Layout calculation for mind map
+      const calculateLayout = (data) => {
+        if (!data) return { nodes: [], links: [], nodeMap: new Map() };
+        
+        const nodes = [];
+        const links = [];
+        const nodeMap = new Map();
+        const centerX = 0;
+        const centerY = 0;
+        const radiusIncrement = 180;
+        
+        // Add root node
+        nodes.push({
+          id: data.id,
+          name: data.name,
+          description: data.description || '',
+          x: centerX,
+          y: centerY,
+          level: 0,
+          parent: null
+        });
+        nodeMap.set(data.id, nodes[0]);
+        
+        // Add category nodes (first level)
+        const angleStep = (2 * Math.PI) / data.children.length;
+        data.children.forEach((category, i) => {
+          const angle = i * angleStep;
+          const x = centerX + Math.cos(angle) * radiusIncrement;
+          const y = centerY + Math.sin(angle) * radiusIncrement;
+          
+          nodes.push({
+            id: category.id,
+            name: category.name,
+            description: category.description || '',
+            x,
+            y,
+            level: 1,
+            parent: data.id
+          });
+          nodeMap.set(category.id, nodes[nodes.length - 1]);
+          
+          // Add link from root to category
+          links.push({
+            source: data.id,
+            target: category.id
+          });
+          
+          // Add option nodes (second level)
+          if (category.children && category.children.length > 0) {
+            const childAngleStep = (Math.PI / 3) / category.children.length;
+            const baseAngle = angle - Math.PI / 6;
+            
+            category.children.forEach((option, j) => {
+              const childAngle = baseAngle + j * childAngleStep;
+              const radius = radiusIncrement * 2;
+              const x = centerX + Math.cos(childAngle) * radius;
+              const y = centerY + Math.sin(childAngle) * radius;
+              
+              nodes.push({
+                id: option.id,
+                name: option.name,
+                tooltip: option.tooltip || '',
+                description: option.description || '',
+                ipType: option.ipType || 'General',
+                cost: option.cost || 'Medium',
+                timeframe: option.timeframe || 'Varies',
+                x,
+                y,
+                level: 2,
+                parent: category.id
+              });
+              nodeMap.set(option.id, nodes[nodes.length - 1]);
+              
+              // Add link from category to option
+              links.push({
+                source: category.id,
+                target: option.id
+              });
+            });
+          }
+        });
+        
+        return { nodes, links, nodeMap };
+      };
+
+      const { nodes = [], links = [], nodeMap = new Map() } = calculateLayout(filteredData);
+
+      // Handle node selection
+      const handleNodeClick = (nodeId) => {
+        setSelectedNode(nodeMap.get(nodeId));
+      };
+
+      // Handle zoom controls
+      const handleZoomIn = () => {
+        setZoomLevel(prev => Math.min(prev + 0.2, 3));
+      };
+
+      const handleZoomOut = () => {
+        setZoomLevel(prev => Math.max(prev - 0.2, 0.5));
+      };
+
+      const handleResetView = () => {
+        setZoomLevel(1);
+        setViewBox(initialViewBox);
+      };
+
+      // Handle search
+      const handleSearch = (e) => {
+        setSearchTerm(e.target.value);
+      };
+
+      // Handle filter changes
+      const handleFilterChange = (filterName, value) => {
+        setFilters(prev => ({
+          ...prev,
+          [filterName]: value
+        }));
+      };
+
+      // Toggle filters panel
+      const toggleFilters = () => {
+        setShowFilters(prev => !prev);
+      };
+
+      return React.createElement('div', { className: 'flex flex-col h-screen bg-gray-50' },
+        // Header with controls
+        React.createElement('div', { className: 'bg-white shadow-md p-4' },
+          React.createElement('div', { className: 'flex flex-wrap items-center justify-between gap-4' },
+            React.createElement('h1', { className: 'text-2xl font-bold text-blue-800' }, 'IP Rights Enforcement Mind Map'),
+            
+            // Search bar
+            React.createElement('div', { className: 'relative' },
+              React.createElement('div', { className: 'absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none' },
+                React.createElement(Search, { size: 18, className: 'text-gray-500' })
+              ),
+              React.createElement('input', {
+                type: 'text',
+                className: 'pl-10 pr-4 py-2 w-64 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500',
+                placeholder: 'Search enforcement options...',
+                value: searchTerm,
+                onChange: handleSearch
+              })
+            ),
+            
+            // Zoom controls
+            React.createElement('div', { className: 'flex items-center space-x-2' },
+              React.createElement('button', {
+                className: 'p-2 bg-gray-200 rounded-md hover:bg-gray-300',
+                onClick: handleZoomOut,
+                'aria-label': 'Zoom out'
+              }, React.createElement(ZoomOut, { size: 20 })),
+              React.createElement('div', { className: 'px-2' }, `${Math.round(zoomLevel * 100)}%`),
+              React.createElement('button', {
+                className: 'p-2 bg-gray-200 rounded-md hover:bg-gray-300',
+                onClick: handleZoomIn,
+                'aria-label': 'Zoom in'
+              }, React.createElement(ZoomIn, { size: 20 })),
+              React.createElement('button', {
+                className: 'p-2 bg-gray-200 rounded-md hover:bg-gray-300',
+                onClick: handleResetView,
+                'aria-label': 'Reset view'
+              }, React.createElement(Home, { size: 20 })),
+              React.createElement('button', {
+                className: `p-2 rounded-md ${showFilters ? 'bg-blue-500 text-white' : 'bg-gray-200 hover:bg-gray-300'}`,
+                onClick: toggleFilters,
+                'aria-label': 'Toggle filters'
+              }, React.createElement(Filter, { size: 20 }))
+            )
+          ),
+          
+          // Filters panel
+          showFilters && React.createElement('div', { className: 'mt-4 p-4 bg-gray-100 rounded-md' },
+            React.createElement('div', { className: 'grid grid-cols-1 md:grid-cols-4 gap-4' },
+              // Category filter
+              React.createElement('div', {},
+                React.createElement('label', { className: 'block text-sm font-medium text-gray-700 mb-1' }, 'Category'),
+                React.createElement('select', {
+                  className: 'w-full p-2 border border-gray-300 rounded-md',
+                  value: filters.category,
+                  onChange: (e) => handleFilterChange('category', e.target.value)
+                },
+                  React.createElement('option', { value: 'All' }, 'All Categories'),
+                  React.createElement('option', { value: 'Administrative' }, 'Administrative Remedies'),
+                  React.createElement('option', { value: 'Legal' }, 'Legal Actions'),
+                  React.createElement('option', { value: 'ADR' }, 'Alternative Dispute Resolution'),
+                  React.createElement('option', { value: 'Self-help' }, 'Self-help Options'),
+                  React.createElement('option', { value: 'Preventative' }, 'Preventative Measures'),
+                  React.createElement('option', { value: 'International' }, 'International Options')
+                )
+              ),
+              
+              // IP Type filter
+              React.createElement('div', {},
+                React.createElement('label', { className: 'block text-sm font-medium text-gray-700 mb-1' }, 'IP Type'),
+                React.createElement('select', {
+                  className: 'w-full p-2 border border-gray-300 rounded-md',
+                  value: filters.ipType,
+                  onChange: (e) => handleFilterChange('ipType', e.target.value)
+                },
+                  React.createElement('option', { value: 'All' }, 'All IP Types'),
+                  React.createElement('option', { value: 'General' }, 'General'),
+                  React.createElement('option', { value: 'Patent' }, 'Patent'),
+                  React.createElement('option', { value: 'Trademark' }, 'Trademark'),
+                  React.createElement('option', { value: 'Copyright' }, 'Copyright'),
+                  React.createElement('option', { value: 'Design' }, 'Design')
+                )
+              ),
+              
+              // Cost filter
+              React.createElement('div', {},
+                React.createElement('label', { className: 'block text-sm font-medium text-gray-700 mb-1' }, 'Cost Level'),
+                React.createElement('select', {
+                  className: 'w-full p-2 border border-gray-300 rounded-md',
+                  value: filters.cost,
+                  onChange: (e) => handleFilterChange('cost', e.target.value)
+                },
+                  React.createElement('option', { value: 'All' }, 'All Cost Levels'),
+                  React.createElement('option', { value: 'Low' }, 'Low'),
+                  React.createElement('option', { value: 'Medium' }, 'Medium'),
+                  React.createElement('option', { value: 'High' }, 'High')
+                )
+              ),
+              
+              // Timeframe filter
+              React.createElement('div', {},
+                React.createElement('label', { className: 'block text-sm font-medium text-gray-700 mb-1' }, 'Timeframe'),
+                React.createElement('select', {
+                  className: 'w-full p-2 border border-gray-300 rounded-md',
+                  value: filters.timeframe,
+                  onChange: (e) => handleFilterChange('timeframe', e.target.value)
+                },
+                  React.createElement('option', { value: 'All' }, 'All Timeframes'),
+                  React.createElement('option', { value: 'Quick' }, 'Quick (Days/Weeks)'),
+                  React.createElement('option', { value: 'Medium' }, 'Medium (Months)'),
+                  React.createElement('option', { value: 'Long' }, 'Long (Years/Ongoing)')
+                )
+              )
+            )
+          )
+        ),
+        
+        // Main content area with mind map
+        React.createElement('div', { className: 'flex flex-1 overflow-hidden' },
+          // Mind map visualization
+          React.createElement('div', { className: 'flex-1 overflow-hidden relative', style: { cursor: 'grab' } },
+            React.createElement('svg', {
+              ref: svgRef,
+              width: '100%',
+              height: '100%',
+              viewBox: viewBox,
+              style: {
+                transformOrigin: 'center',
+                transform: `scale(${zoomLevel})`,
+                transition: 'transform 0.2s ease'
+              }
+            },
+              // Links
+              React.createElement('g', { className: 'links' },
+                links.map((link, index) => {
+                  const source = nodeMap.get(link.source);
+                  const target = nodeMap.get(link.target);
+                  
+                  // Skip if nodes are not found
+                  if (!source || !target) return null;
+                  
+                  return React.createElement('line', {
+                    key: `link-${index}`,
+                    x1: source.x,
+                    y1: source.y,
+                    x2: target.x,
+                    y2: target.y,
+                    stroke: target.level === 2 ? "#94a3b8" : "#475569",
+                    strokeWidth: target.level === 2 ? 2 : 3,
+                    strokeOpacity: 0.7
+                  });
+                })
+              ),
+              
+              // Nodes
+              React.createElement('g', { className: 'nodes' },
+                nodes.map((node) => {
+                  // Different styles based on node level
+                  let circleRadius, fillColor, textColor, fontSize;
+                  
+                  if (node.level === 0) {
+                    // Root node
+                    circleRadius = 80;
+                    fillColor = "#1e40af";
+                    textColor = "#ffffff";
+                    fontSize = "16px";
+                  } else if (node.level === 1) {
+                    // Category node
+                    circleRadius = 60;
+                    fillColor = "#3b82f6";
+                    textColor = "#ffffff";
+                    fontSize = "14px";
+                  } else {
+                    // Option node
+                    circleRadius = 45;
+                    
+                    // Color based on IP type
+                    if (node.ipType === "Patent") {
+                      fillColor = "#10b981";
+                    } else if (node.ipType === "Trademark") {
+                      fillColor = "#f59e0b";
+                    } else if (node.ipType === "Copyright") {
+                      fillColor = "#8b5cf6"; 
+                    } else if (node.ipType === "Design") {
+                      fillColor = "#ec4899";
+                    } else {
+                      fillColor = "#6b7280";
+                    }
+                    
+                    textColor = "#ffffff";
+                    fontSize = "12px";
+                  }
+                  
+                  // Highlight selected node
+                  if (selectedNode && selectedNode.id === node.id) {
+                    circleRadius += 5;
+                  }
+                  
+                  // Handle search highlight
+                  if (searchTerm && (
+                    node.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                    node.description.toLowerCase().includes(searchTerm.toLowerCase())
+                  )) {
+                    fillColor = "#ef4444"; // Highlight color
+                  }
+                  
+                  return React.createElement('g', {
+                    key: node.id,
+                    transform: `translate(${node.x},${node.y})`,
+                    onClick: () => handleNodeClick(node.id),
+                    style: { cursor: 'pointer' }
+                  },
+                    // Node circle
+                    React.createElement('circle', {
+                      r: circleRadius,
+                      fill: fillColor,
+                      strokeWidth: selectedNode && selectedNode.id === node.id ? 4 : 0,
+                      stroke: selectedNode && selectedNode.id === node.id ? "#fde047" : "none"
+                    }),
+                    
+                    // Node text
+                    React.createElement('text', {
+                      textAnchor: 'middle',
+                      dy: '.3em',
+                      fill: textColor,
+                      fontSize: fontSize,
+                      fontWeight: 'bold'
+                    },
+                      // Break long text into multiple lines
+                      node.name.split(' ').reduce((result, word, i, arr) => {
+                        if (i % 2 === 0) {
+                          result.push(arr.slice(i, i + 2).join(' '));
+                        }
+                        return result;
+                      }, []).map((line, i, arr) => (
+                        React.createElement('tspan', {
+                          key: i,
+                          x: '0',
+                          dy: i === 0 ? -((arr.length - 1) * 15) / 2 : 15
+                        }, line)
+                      ))
+                    )
+                  );
+                })
+              )
+            )
+          ),
+          
+          // Detail panel
+          selectedNode && React.createElement('div', { className: 'w-80 bg-white p-4 shadow-lg overflow-y-auto' },
+            React.createElement('h2', { className: 'text-xl font-bold text-gray-800 mb-2' }, selectedNode.name),
+            
+            selectedNode.tooltip && React.createElement('h3', { className: 'text-lg font-semibold text-gray-700 mb-3' }, selectedNode.tooltip),
+            
+            React.createElement('p', { className: 'text-gray-600 mb-4' }, selectedNode.description),
+            
+            selectedNode.level === 2 && React.createElement('div', { className: 'space-y-2 mt-4' },
+              React.createElement('div', { className: 'bg-gray-100 p-3 rounded-md' },
+                React.createElement('h4', { className: 'font-semibold text-gray-700' }, 'IP Type'),
+                React.createElement('p', {}, selectedNode.ipType)
+              ),
+              
+              React.createElement('div', { className: 'bg-gray-100 p-3 rounded-md' },
+                React.createElement('h4', { className: 'font-semibold text-gray-700' }, 'Cost Level'),
+                React.createElement('div', { className: 'flex items-center mt-1' },
+                  React.createElement('div', { 
+                    className: `w-4 h-4 rounded-full ${
+                      selectedNode.cost === 'Low' ? 'bg-green-500' : 
+                      selectedNode.cost === 'Medium' ? 'bg-yellow-500' : 
+                      'bg-red-500'
+                    }`
+                  }),
+                  React.createElement('span', { className: 'ml-2' }, selectedNode.cost)
+                )
+              ),
+              
+              React.createElement('div', { className: 'bg-gray-100 p-3 rounded-md' },
+                React.createElement('h4', { className: 'font-semibold text-gray-700' }, 'Timeframe'),
+                React.createElement('p', {}, selectedNode.timeframe)
+              )
+            ),
+            
+            selectedNode.level === 1 && React.createElement('div', { className: 'mt-4' },
+              React.createElement('h4', { className: 'font-semibold text-gray-700 mb-2' }, 'Options in this category:'),
+              React.createElement('ul', { className: 'list-disc pl-5 space-y-1' },
+                nodes
+                  .filter(node => node.parent === selectedNode.id)
+                  .map(option => (
+                    React.createElement('li', {
+                      key: option.id,
+                      className: 'text-blue-600 hover:text-blue-800 cursor-pointer',
+                      onClick: () => handleNodeClick(option.id)
+                    }, option.name)
+                  ))
+              )
+            ),
+            
+            React.createElement('button', {
+              className: 'mt-6 w-full bg-gray-200 hover:bg-gray-300 text-gray-800 py-2 px-4 rounded',
+              onClick: () => setSelectedNode(null)
+            }, 'Close')
+          )
+        )
+      );
+    };
+
+    // Render the application
+    ReactDOM.render(
+      React.createElement(MindMap),
+      document.getElementById('root')
+    );
+  </script>
+</body>
+</html>
