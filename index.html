@@ -5,10 +5,20 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>IP Rights Enforcement Mind Map</title>
   
-  <!-- Dependencies -->
+  <!-- Add error handling for dependencies -->
+  <script>
+    window.onerror = function(message, source, lineno, colno, error) {
+      console.error("Error occurred:", message, "at", source, "line:", lineno);
+      document.getElementById('error-message').textContent = 
+        "An error occurred: " + message + ". Please check console for details.";
+      document.getElementById('error-container').style.display = 'block';
+      return true;
+    };
+  </script>
+  
+  <!-- Dependencies with fallbacks -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/lucide/0.263.1/umd/lucide.min.js"></script>
   
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -33,12 +43,83 @@
     .links line {
       stroke-linecap: round;
     }
+    
+    #error-container {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      padding: 1rem;
+      background-color: #fee2e2;
+      color: #b91c1c;
+      text-align: center;
+      font-weight: bold;
+      z-index: 9999;
+    }
+    
+    /* Simplified icons styles */
+    .icon {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      stroke-width: 2;
+      stroke: currentColor;
+      fill: none;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
   </style>
 </head>
 <body>
+  <!-- Error message container -->
+  <div id="error-container">
+    <div id="error-message"></div>
+  </div>
+  
+  <!-- React root -->
   <div id="root" class="mindmap-container"></div>
 
+  <!-- SVG icons definitions -->
+  <svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+    <symbol id="icon-search" viewBox="0 0 24 24">
+      <circle cx="11" cy="11" r="8"></circle>
+      <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+    </symbol>
+    <symbol id="icon-zoom-in" viewBox="0 0 24 24">
+      <circle cx="11" cy="11" r="8"></circle>
+      <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+      <line x1="11" y1="8" x2="11" y2="14"></line>
+      <line x1="8" y1="11" x2="14" y2="11"></line>
+    </symbol>
+    <symbol id="icon-zoom-out" viewBox="0 0 24 24">
+      <circle cx="11" cy="11" r="8"></circle>
+      <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+      <line x1="8" y1="11" x2="14" y2="11"></line>
+    </symbol>
+    <symbol id="icon-home" viewBox="0 0 24 24">
+      <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+      <polyline points="9 22 9 12 15 12 15 22"></polyline>
+    </symbol>
+    <symbol id="icon-filter" viewBox="0 0 24 24">
+      <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+    </symbol>
+  </svg>
+
   <script>
+    // Icon component helper function
+    function Icon(props) {
+      return React.createElement('svg', { 
+        className: 'icon ' + (props.className || ''),
+        width: props.size || 24, 
+        height: props.size || 24 
+      },
+        React.createElement('use', { 
+          xlinkHref: '#icon-' + props.name 
+        })
+      );
+    }
+    
     // Data for the mind map
     const mindMapData = {
       id: "root",
@@ -335,7 +416,6 @@
     // Main application component
     const MindMap = () => {
       const { useState, useEffect, useRef } = React;
-      const { Search, ZoomIn, ZoomOut, Home, Filter } = lucide;
       
       const [data, setData] = useState(mindMapData);
       const [searchTerm, setSearchTerm] = useState('');
@@ -354,135 +434,150 @@
       
       // Apply filters and search
       const getFilteredData = () => {
-        if (!data) return null;
-        
-        // Deep clone the data
-        const clonedData = JSON.parse(JSON.stringify(data));
-        
-        // Apply filters to each category
-        clonedData.children = clonedData.children.map(category => {
-          // Filter children based on criteria
-          const filteredChildren = category.children.filter(node => {
-            // Apply search filter
-            const matchesSearch = searchTerm === '' || 
-              node.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-              node.description.toLowerCase().includes(searchTerm.toLowerCase());
-            
-            // Apply category filters
-            const matchesIpType = filters.ipType === 'All' || node.ipType === filters.ipType;
-            const matchesCost = filters.cost === 'All' || node.cost === filters.cost;
-            const matchesTimeframe = filters.timeframe === 'All' || 
-              (filters.timeframe === 'Quick' && (node.timeframe === 'Days' || node.timeframe === 'Weeks')) ||
-              (filters.timeframe === 'Medium' && node.timeframe === 'Months') ||
-              (filters.timeframe === 'Long' && (node.timeframe === 'Years' || node.timeframe === 'Ongoing'));
-            
-            return matchesSearch && matchesIpType && matchesCost && matchesTimeframe;
-          });
+        try {
+          if (!data) return null;
           
-          return {
-            ...category,
-            children: filteredChildren,
-            filtered: filteredChildren.length > 0 // Flag to indicate if this category has any matches
-          };
-        }).filter(category => 
-          filters.category === 'All' || category.id === filters.category.toLowerCase()
-        ).filter(category => category.filtered);
-        
-        return clonedData;
+          // Deep clone the data
+          const clonedData = JSON.parse(JSON.stringify(data));
+          
+          // Apply filters to each category
+          clonedData.children = clonedData.children.map(category => {
+            // Filter children based on criteria
+            const filteredChildren = category.children.filter(node => {
+              // Apply search filter
+              const matchesSearch = searchTerm === '' || 
+                node.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                node.description.toLowerCase().includes(searchTerm.toLowerCase());
+              
+              // Apply category filters
+              const matchesIpType = filters.ipType === 'All' || node.ipType === filters.ipType;
+              const matchesCost = filters.cost === 'All' || node.cost === filters.cost;
+              const matchesTimeframe = filters.timeframe === 'All' || 
+                (filters.timeframe === 'Quick' && (node.timeframe === 'Days' || node.timeframe === 'Weeks')) ||
+                (filters.timeframe === 'Medium' && node.timeframe === 'Months') ||
+                (filters.timeframe === 'Long' && (node.timeframe === 'Years' || node.timeframe === 'Ongoing'));
+              
+              return matchesSearch && matchesIpType && matchesCost && matchesTimeframe;
+            });
+            
+            return {
+              ...category,
+              children: filteredChildren,
+              filtered: filteredChildren.length > 0 // Flag to indicate if this category has any matches
+            };
+          }).filter(category => 
+            filters.category === 'All' || category.id === filters.category.toLowerCase()
+          ).filter(category => category.filtered);
+          
+          return clonedData;
+        } catch (error) {
+          console.error("Error in getFilteredData:", error);
+          // Return original data in case of error
+          return data;
+        }
       };
 
       const filteredData = getFilteredData();
 
       // Layout calculation for mind map
       const calculateLayout = (data) => {
-        if (!data) return { nodes: [], links: [], nodeMap: new Map() };
-        
-        const nodes = [];
-        const links = [];
-        const nodeMap = new Map();
-        const centerX = 0;
-        const centerY = 0;
-        const radiusIncrement = 180;
-        
-        // Add root node
-        nodes.push({
-          id: data.id,
-          name: data.name,
-          description: data.description || '',
-          x: centerX,
-          y: centerY,
-          level: 0,
-          parent: null
-        });
-        nodeMap.set(data.id, nodes[0]);
-        
-        // Add category nodes (first level)
-        const angleStep = (2 * Math.PI) / data.children.length;
-        data.children.forEach((category, i) => {
-          const angle = i * angleStep;
-          const x = centerX + Math.cos(angle) * radiusIncrement;
-          const y = centerY + Math.sin(angle) * radiusIncrement;
+        try {
+          if (!data) return { nodes: [], links: [], nodeMap: new Map() };
           
+          const nodes = [];
+          const links = [];
+          const nodeMap = new Map();
+          const centerX = 0;
+          const centerY = 0;
+          const radiusIncrement = 180;
+          
+          // Add root node
           nodes.push({
-            id: category.id,
-            name: category.name,
-            description: category.description || '',
-            x,
-            y,
-            level: 1,
-            parent: data.id
+            id: data.id,
+            name: data.name,
+            description: data.description || '',
+            x: centerX,
+            y: centerY,
+            level: 0,
+            parent: null
           });
-          nodeMap.set(category.id, nodes[nodes.length - 1]);
+          nodeMap.set(data.id, nodes[0]);
           
-          // Add link from root to category
-          links.push({
-            source: data.id,
-            target: category.id
-          });
-          
-          // Add option nodes (second level)
-          if (category.children && category.children.length > 0) {
-            const childAngleStep = (Math.PI / 3) / category.children.length;
-            const baseAngle = angle - Math.PI / 6;
+          // Add category nodes (first level)
+          const angleStep = (2 * Math.PI) / data.children.length;
+          data.children.forEach((category, i) => {
+            const angle = i * angleStep;
+            const x = centerX + Math.cos(angle) * radiusIncrement;
+            const y = centerY + Math.sin(angle) * radiusIncrement;
             
-            category.children.forEach((option, j) => {
-              const childAngle = baseAngle + j * childAngleStep;
-              const radius = radiusIncrement * 2;
-              const x = centerX + Math.cos(childAngle) * radius;
-              const y = centerY + Math.sin(childAngle) * radius;
-              
-              nodes.push({
-                id: option.id,
-                name: option.name,
-                tooltip: option.tooltip || '',
-                description: option.description || '',
-                ipType: option.ipType || 'General',
-                cost: option.cost || 'Medium',
-                timeframe: option.timeframe || 'Varies',
-                x,
-                y,
-                level: 2,
-                parent: category.id
-              });
-              nodeMap.set(option.id, nodes[nodes.length - 1]);
-              
-              // Add link from category to option
-              links.push({
-                source: category.id,
-                target: option.id
-              });
+            nodes.push({
+              id: category.id,
+              name: category.name,
+              description: category.description || '',
+              x,
+              y,
+              level: 1,
+              parent: data.id
             });
-          }
-        });
-        
-        return { nodes, links, nodeMap };
+            nodeMap.set(category.id, nodes[nodes.length - 1]);
+            
+            // Add link from root to category
+            links.push({
+              source: data.id,
+              target: category.id
+            });
+            
+            // Add option nodes (second level)
+            if (category.children && category.children.length > 0) {
+              const childAngleStep = (Math.PI / 3) / Math.max(category.children.length, 1);
+              const baseAngle = angle - Math.PI / 6;
+              
+              category.children.forEach((option, j) => {
+                const childAngle = baseAngle + j * childAngleStep;
+                const radius = radiusIncrement * 2;
+                const x = centerX + Math.cos(childAngle) * radius;
+                const y = centerY + Math.sin(childAngle) * radius;
+                
+                nodes.push({
+                  id: option.id,
+                  name: option.name,
+                  tooltip: option.tooltip || '',
+                  description: option.description || '',
+                  ipType: option.ipType || 'General',
+                  cost: option.cost || 'Medium',
+                  timeframe: option.timeframe || 'Varies',
+                  x,
+                  y,
+                  level: 2,
+                  parent: category.id
+                });
+                nodeMap.set(option.id, nodes[nodes.length - 1]);
+                
+                // Add link from category to option
+                links.push({
+                  source: category.id,
+                  target: option.id
+                });
+              });
+            }
+          });
+          
+          return { nodes, links, nodeMap };
+        } catch (error) {
+          console.error("Error in calculateLayout:", error);
+          return { nodes: [], links: [], nodeMap: new Map() };
+        }
       };
 
       const { nodes = [], links = [], nodeMap = new Map() } = calculateLayout(filteredData);
 
       // Handle node selection
       const handleNodeClick = (nodeId) => {
-        setSelectedNode(nodeMap.get(nodeId));
+        try {
+          setSelectedNode(nodeMap.get(nodeId));
+        } catch (error) {
+          console.error("Error in handleNodeClick:", error);
+        }
       };
 
       // Handle zoom controls
@@ -517,6 +612,17 @@
         setShowFilters(prev => !prev);
       };
 
+      // Prepare node text
+      const prepareNodeText = (name) => {
+        if (!name) return [];
+        const words = name.split(' ');
+        const lines = [];
+        for (let i = 0; i < words.length; i += 2) {
+          lines.push(words.slice(i, i + 2).join(' '));
+        }
+        return lines;
+      };
+
       return React.createElement('div', { className: 'flex flex-col h-screen bg-gray-50' },
         // Header with controls
         React.createElement('div', { className: 'bg-white shadow-md p-4' },
@@ -526,7 +632,7 @@
             // Search bar
             React.createElement('div', { className: 'relative' },
               React.createElement('div', { className: 'absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none' },
-                React.createElement(Search, { size: 18, className: 'text-gray-500' })
+                React.createElement(Icon, { name: 'search', size: 18, className: 'text-gray-500' })
               ),
               React.createElement('input', {
                 type: 'text',
@@ -543,23 +649,23 @@
                 className: 'p-2 bg-gray-200 rounded-md hover:bg-gray-300',
                 onClick: handleZoomOut,
                 'aria-label': 'Zoom out'
-              }, React.createElement(ZoomOut, { size: 20 })),
+              }, React.createElement(Icon, { name: 'zoom-out', size: 20 })),
               React.createElement('div', { className: 'px-2' }, `${Math.round(zoomLevel * 100)}%`),
               React.createElement('button', {
                 className: 'p-2 bg-gray-200 rounded-md hover:bg-gray-300',
                 onClick: handleZoomIn,
                 'aria-label': 'Zoom in'
-              }, React.createElement(ZoomIn, { size: 20 })),
+              }, React.createElement(Icon, { name: 'zoom-in', size: 20 })),
               React.createElement('button', {
                 className: 'p-2 bg-gray-200 rounded-md hover:bg-gray-300',
                 onClick: handleResetView,
                 'aria-label': 'Reset view'
-              }, React.createElement(Home, { size: 20 })),
+              }, React.createElement(Icon, { name: 'home', size: 20 })),
               React.createElement('button', {
                 className: `p-2 rounded-md ${showFilters ? 'bg-blue-500 text-white' : 'bg-gray-200 hover:bg-gray-300'}`,
                 onClick: toggleFilters,
                 'aria-label': 'Toggle filters'
-              }, React.createElement(Filter, { size: 20 }))
+              }, React.createElement(Icon, { name: 'filter', size: 20 }))
             )
           ),
           
@@ -652,114 +758,121 @@
               // Links
               React.createElement('g', { className: 'links' },
                 links.map((link, index) => {
-                  const source = nodeMap.get(link.source);
-                  const target = nodeMap.get(link.target);
-                  
-                  // Skip if nodes are not found
-                  if (!source || !target) return null;
-                  
-                  return React.createElement('line', {
-                    key: `link-${index}`,
-                    x1: source.x,
-                    y1: source.y,
-                    x2: target.x,
-                    y2: target.y,
-                    stroke: target.level === 2 ? "#94a3b8" : "#475569",
-                    strokeWidth: target.level === 2 ? 2 : 3,
-                    strokeOpacity: 0.7
-                  });
+                  try {
+                    const source = nodeMap.get(link.source);
+                    const target = nodeMap.get(link.target);
+                    
+                    // Skip if nodes are not found
+                    if (!source || !target) return null;
+                    
+                    return React.createElement('line', {
+                      key: `link-${index}`,
+                      x1: source.x,
+                      y1: source.y,
+                      x2: target.x,
+                      y2: target.y,
+                      stroke: target.level === 2 ? "#94a3b8" : "#475569",
+                      strokeWidth: target.level === 2 ? 2 : 3,
+                      strokeOpacity: 0.7
+                    });
+                  } catch (error) {
+                    console.error("Error rendering link:", error);
+                    return null;
+                  }
                 })
               ),
               
               // Nodes
               React.createElement('g', { className: 'nodes' },
                 nodes.map((node) => {
-                  // Different styles based on node level
-                  let circleRadius, fillColor, textColor, fontSize;
-                  
-                  if (node.level === 0) {
-                    // Root node
-                    circleRadius = 80;
-                    fillColor = "#1e40af";
-                    textColor = "#ffffff";
-                    fontSize = "16px";
-                  } else if (node.level === 1) {
-                    // Category node
-                    circleRadius = 60;
-                    fillColor = "#3b82f6";
-                    textColor = "#ffffff";
-                    fontSize = "14px";
-                  } else {
-                    // Option node
-                    circleRadius = 45;
+                  try {
+                    // Different styles based on node level
+                    let circleRadius, fillColor, textColor, fontSize;
                     
-                    // Color based on IP type
-                    if (node.ipType === "Patent") {
-                      fillColor = "#10b981";
-                    } else if (node.ipType === "Trademark") {
-                      fillColor = "#f59e0b";
-                    } else if (node.ipType === "Copyright") {
-                      fillColor = "#8b5cf6"; 
-                    } else if (node.ipType === "Design") {
-                      fillColor = "#ec4899";
+                    if (node.level === 0) {
+                      // Root node
+                      circleRadius = 80;
+                      fillColor = "#1e40af";
+                      textColor = "#ffffff";
+                      fontSize = "16px";
+                    } else if (node.level === 1) {
+                      // Category node
+                      circleRadius = 60;
+                      fillColor = "#3b82f6";
+                      textColor = "#ffffff";
+                      fontSize = "14px";
                     } else {
-                      fillColor = "#6b7280";
+                      // Option node
+                      circleRadius = 45;
+                      
+                      // Color based on IP type
+                      if (node.ipType === "Patent") {
+                        fillColor = "#10b981";
+                      } else if (node.ipType === "Trademark") {
+                        fillColor = "#f59e0b";
+                      } else if (node.ipType === "Copyright") {
+                        fillColor = "#8b5cf6"; 
+                      } else if (node.ipType === "Design") {
+                        fillColor = "#ec4899";
+                      } else {
+                        fillColor = "#6b7280";
+                      }
+                      
+                      textColor = "#ffffff";
+                      fontSize = "12px";
                     }
                     
-                    textColor = "#ffffff";
-                    fontSize = "12px";
-                  }
-                  
-                  // Highlight selected node
-                  if (selectedNode && selectedNode.id === node.id) {
-                    circleRadius += 5;
-                  }
-                  
-                  // Handle search highlight
-                  if (searchTerm && (
-                    node.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                    node.description.toLowerCase().includes(searchTerm.toLowerCase())
-                  )) {
-                    fillColor = "#ef4444"; // Highlight color
-                  }
-                  
-                  return React.createElement('g', {
-                    key: node.id,
-                    transform: `translate(${node.x},${node.y})`,
-                    onClick: () => handleNodeClick(node.id),
-                    style: { cursor: 'pointer' }
-                  },
-                    // Node circle
-                    React.createElement('circle', {
-                      r: circleRadius,
-                      fill: fillColor,
-                      strokeWidth: selectedNode && selectedNode.id === node.id ? 4 : 0,
-                      stroke: selectedNode && selectedNode.id === node.id ? "#fde047" : "none"
-                    }),
+                    // Highlight selected node
+                    if (selectedNode && selectedNode.id === node.id) {
+                      circleRadius += 5;
+                    }
                     
-                    // Node text
-                    React.createElement('text', {
-                      textAnchor: 'middle',
-                      dy: '.3em',
-                      fill: textColor,
-                      fontSize: fontSize,
-                      fontWeight: 'bold'
+                    // Handle search highlight
+                    if (searchTerm && (
+                      node.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                      node.description.toLowerCase().includes(searchTerm.toLowerCase())
+                    )) {
+                      fillColor = "#ef4444"; // Highlight color
+                    }
+                    
+                    // Prepare text lines
+                    const textLines = prepareNodeText(node.name);
+                    
+                    return React.createElement('g', {
+                      key: node.id,
+                      transform: `translate(${node.x},${node.y})`,
+                      onClick: () => handleNodeClick(node.id),
+                      style: { cursor: 'pointer' }
                     },
-                      // Break long text into multiple lines
-                      node.name.split(' ').reduce((result, word, i, arr) => {
-                        if (i % 2 === 0) {
-                          result.push(arr.slice(i, i + 2).join(' '));
-                        }
-                        return result;
-                      }, []).map((line, i, arr) => (
-                        React.createElement('tspan', {
-                          key: i,
-                          x: '0',
-                          dy: i === 0 ? -((arr.length - 1) * 15) / 2 : 15
-                        }, line)
-                      ))
-                    )
-                  );
+                      // Node circle
+                      React.createElement('circle', {
+                        r: circleRadius,
+                        fill: fillColor,
+                        strokeWidth: selectedNode && selectedNode.id === node.id ? 4 : 0,
+                        stroke: selectedNode && selectedNode.id === node.id ? "#fde047" : "none"
+                      }),
+                      
+                      // Node text
+                      React.createElement('text', {
+                        textAnchor: 'middle',
+                        dy: '.3em',
+                        fill: textColor,
+                        fontSize: fontSize,
+                        fontWeight: 'bold'
+                      },
+                        textLines.map((line, i, arr) => (
+                          React.createElement('tspan', {
+                            key: i,
+                            x: '0',
+                            dy: i === 0 ? -((arr.length - 1) * 15) / 2 : 15
+                          }, line)
+                        ))
+                      )
+                    );
+                  } catch (error) {
+                    console.error("Error rendering node:", error);
+                    return null;
+                  }
                 })
               )
             )
@@ -823,11 +936,19 @@
       );
     };
 
-    // Render the application
-    ReactDOM.render(
-      React.createElement(MindMap),
-      document.getElementById('root')
-    );
+    // Render with error handling
+    try {
+      ReactDOM.render(
+        React.createElement(MindMap),
+        document.getElementById('root')
+      );
+      console.log("Mind map rendered successfully");
+    } catch (error) {
+      console.error("Error rendering the mind map:", error);
+      document.getElementById('error-message').textContent = 
+        "Error rendering the mind map: " + error.message;
+      document.getElementById('error-container').style.display = 'block';
+    }
   </script>
 </body>
 </html>
